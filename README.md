@@ -16,7 +16,7 @@ An AI-powered system that predicts crop yields using machine learning, real-time
 **Domain:** Smart Agriculture (AI/ML)  
 **Coverage:** All 38 Districts of Tamil Nadu (100+ locations)
 
-## App :https://vidhya-dotcom.github.io/Crop-Yeild-Prediction/
+## App :https://sarubalathandapani.github.io/Crop_Yield_Prediction/
 ---
 
 ## ✨ Key Features
