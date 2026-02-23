@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Crop Yield Predictor - Real-Time Analysis</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #2d3748;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #718096;
+            font-size: 1.1em;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .card h2 {
+            color: #2d3748;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            color: #4a5568;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .input-group input,
+        .input-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        .input-group input:focus,
+        .input-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            margin-top: 10px;
+        }
+
+        .results {
+            grid-column: 1 / -1;
+        }
+
+        .prediction-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .prediction-box h3 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .prediction-box .yield {
+            font-size: 3.5em;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .metric-card {
+            background: #f7fafc;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .metric-card .label {
+            color: #718096;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+
+        .metric-card .value {
+            color: #2d3748;
+            font-size: 1.8em;
+            font-weight: bold;
+        }
+
+        .recommendations {
+            background: #fff5f5;
+            border-left: 4px solid #fc8181;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .recommendations h3 {
+            color: #c53030;
+            margin-bottom: 15px;
+        }
+
+        .recommendations ul {
+            list-style: none;
+        }
+
+        .recommendations li {
+            padding: 10px;
+            margin: 5px 0;
+            background: white;
+            border-radius: 5px;
+        }
+
+        .weather-info {
+            background: #ebf8ff;
+            border-left: 4px solid #4299e1;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .weather-info h3 {
+            color: #2c5282;
+            margin-bottom: 15px;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        .comparison-table th,
+        .comparison-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .comparison-table th {
+            background: #667eea;
+            color: white;
+            font-weight: 600;
+        }
+
+        .comparison-table tr:hover {
+            background: #f7fafc;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .metrics {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌾 AI Crop Yield Predictor</h1>
+            <p>Real-Time Weather Integration & Machine Learning Analysis</p>
+            <p style="font-size: 0.9em; color: #a0aec0; margin-top: 10px;">
+                <strong>Serving All 38 Districts Across Tamil Nadu</strong><br>
+                From Kanyakumari to Thiruvallur | Chennai to Nilgiris
+            </p>
+        </div>
+
+        <div class="main-content">
+            <!-- Soil Parameters -->
+            <div class="card">
+                <h2>🌱 Soil Parameters</h2>
+                <div class="input-group">
+                    <label>Nitrogen (N) - kg/hectare</label>
+                    <input type="number" id="nitrogen" value="75" min="0" max="140">
+                </div>
+                <div class="input-group">
+                    <label>Phosphorus (P) - kg/hectare</label>
+                    <input type="number" id="phosphorus" value="65" min="0" max="145">
+                </div>
+                <div class="input-group">
+                    <label>Potassium (K) - kg/hectare</label>
+                    <input type="number" id="potassium" value="85" min="0" max="205">
+                </div>
+                <div class="input-group">
+                    <label>pH Level</label>
+                    <input type="number" id="ph" value="6.8" min="4" max="9" step="0.1">
+                </div>
+            </div>
+
+            <!-- Crop and Area -->
+            <div class="card">
+                <h2>🚜 Crop Information</h2>
+                <div class="input-group">
+                    <label>Select Crop</label>
+                    <select id="crop">
+                        <option value="groundnut">Groundnut</option>
+                        <option value="rice">Rice</option>
+                        <option value="wheat">Wheat</option>
+                        <option value="cotton">Cotton</option>
+                        <option value="sugarcane">Sugarcane</option>
+                        <option value="maize">Maize</option>
+                        <option value="pulses">Pulses</option>
+                        <option value="vegetables">Vegetables</option>
+                        <option value="flowers">Flowers</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Cultivated Area (hectares)</label>
+                    <input type="number" id="area" value="2.5" min="0.1" max="100" step="0.1">
+                </div>
+                <div class="input-group">
+                    <label>Location (Tamil Nadu)</label>
+                    <select id="location">
+                        <optgroup label="Major Cities">
+                            <option value="chennai">Chennai</option>
+                            <option value="coimbatore">Coimbatore</option>
+                            <option value="madurai">Madurai</option>
+                            <option value="tiruchirappalli">Tiruchirappalli (Trichy)</option>
+                            <option value="salem">Salem</option>
+                            <option value="tirunelveli">Tirunelveli</option>
+                            <option value="tiruppur">Tiruppur</option>
+                            <option value="erode">Erode</option>
+                            <option value="vellore">Vellore</option>
+                            <option value="thoothukudi">Thoothukudi (Tuticorin)</option>
+                        </optgroup>
+                        <optgroup label="Northern Districts">
+                            <option value="thiruvallur">Thiruvallur</option>
+                            <option value="kanchipuram">Kanchipuram</option>
+                            <option value="chengalpattu">Chengalpattu</option>
+                            <option value="vellore">Vellore</option>
+                            <option value="ranipet">Ranipet</option>
+                            <option value="tirupattur">Tirupattur</option>
+                            <option value="krishnagiri">Krishnagiri</option>
+                            <option value="dharmapuri">Dharmapuri</option>
+                            <option value="tiruvannamalai">Tiruvannamalai</option>
+                        </optgroup>
+                        <optgroup label="Western Districts (Kongu)">
+                            <option value="coimbatore">Coimbatore</option>
+                            <option value="tiruppur">Tiruppur</option>
+                            <option value="erode">Erode</option>
+                            <option value="nilgiris">Nilgiris (Ooty)</option>
+                            <option value="salem">Salem</option>
+                            <option value="namakkal">Namakkal</option>
+                            <option value="karur">Karur</option>
+                            <option value="pollachi">Pollachi</option>
+                            <option value="gobichettipalayam">Gobichettipalayam</option>
+                            <option value="mettupalayam">Mettupalayam</option>
+                        </optgroup>
+                        <optgroup label="Central Districts (Delta)">
+                            <option value="tiruchirappalli">Tiruchirappalli</option>
+                            <option value="thanjavur">Thanjavur</option>
+                            <option value="thiruvarur">Thiruvarur</option>
+                            <option value="nagapattinam">Nagapattinam</option>
+                            <option value="mayiladuthurai">Mayiladuthurai</option>
+                            <option value="ariyalur">Ariyalur</option>
+                            <option value="perambalur">Perambalur</option>
+                            <option value="pudukkottai">Pudukkottai</option>
+                            <option value="kumbakonam">Kumbakonam</option>
+                        </optgroup>
+                        <optgroup label="Southern Districts">
+                            <option value="madurai">Madurai</option>
+                            <option value="dindigul">Dindigul</option>
+                            <option value="theni">Theni</option>
+                            <option value="virudhunagar">Virudhunagar</option>
+                            <option value="sivaganga">Sivaganga</option>
+                            <option value="ramanathapuram">Ramanathapuram</option>
+                            <option value="tirunelveli">Tirunelveli</option>
+                            <option value="tenkasi">Tenkasi</option>
+                            <option value="kanyakumari">Kanyakumari</option>
+                            <option value="thoothukudi">Thoothukudi</option>
+                        </optgroup>
+                        <optgroup label="Eastern Districts (Coastal)">
+                            <option value="cuddalore">Cuddalore</option>
+                            <option value="villupuram">Villupuram</option>
+                            <option value="kallakurichi">Kallakurichi</option>
+                            <option value="chidambaram">Chidambaram</option>
+                            <option value="neyveli">Neyveli</option>
+                        </optgroup>
+                        <optgroup label="Agricultural Towns">
+                            <option value="gopalapuram">Gopalapuram</option>
+                            <option value="hosur">Hosur</option>
+                            <option value="karaikudi">Karaikudi</option>
+                            <option value="sivakasi">Sivakasi</option>
+                            <option value="rajapalayam">Rajapalayam</option>
+                            <option value="udumalaipettai">Udumalaipettai</option>
+                            <option value="palani">Palani</option>
+                            <option value="dharapuram">Dharapuram</option>
+                            <option value="kangeyam">Kangeyam</option>
+                            <option value="bhavani">Bhavani</option>
+                        </optgroup>
+                        <optgroup label="Hill Stations">
+                            <option value="ooty">Ooty (Nilgiris)</option>
+                            <option value="kodaikanal">Kodaikanal</option>
+                            <option value="yercaud">Yercaud</option>
+                            <option value="kotagiri">Kotagiri</option>
+                            <option value="coonoor">Coonoor</option>
+                            <option value="valparai">Valparai</option>
+                            <option value="yelagiri">Yelagiri</option>
+                        </optgroup>
+                    </select>
+                </div>
+                <button class="btn" onclick="fetchWeatherAndPredict()">
+                    🔍 Fetch Weather & Predict Yield
+                </button>
+                <button class="btn btn-secondary" onclick="compareAllCrops()">
+                    📊 Compare All Crops
+                </button>
+            </div>
+        </div>
+
+        <!-- Loading Indicator -->
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p style="margin-top: 20px; color: white; font-size: 1.2em;">
+                Fetching real-time weather data and analyzing...
+            </p>
+        </div>
+
+        <!-- Results -->
+        <div class="card results" id="results" style="display: none;">
+            <h2>📈 Prediction Results</h2>
+            
+            <div class="weather-info" id="weatherInfo"></div>
+            
+            <div class="prediction-box">
+                <h3 id="cropName">GROUNDNUT</h3>
+                <div class="yield" id="predictedYield">0 kg/ha</div>
+                <p id="totalYield">Total: 0 tonnes</p>
+                <p id="confidenceRange" style="font-size: 0.9em; opacity: 0.9;">
+                    Confidence Range: 0 - 0 kg/ha
+                </p>
+            </div>
+
+            <div class="metrics">
+                <div class="metric-card">
+                    <div class="label">Expected Revenue</div>
+                    <div class="value" id="revenue">₹0</div>
+                </div>
+                <div class="metric-card">
+                    <div class="label">Estimated Cost</div>
+                    <div class="value" id="cost">₹0</div>
+                </div>
+                <div class="metric-card">
+                    <div class="label">Expected Profit</div>
+                    <div class="value" id="profit">₹0</div>
+                </div>
+                <div class="metric-card">
+                    <div class="label">Profit Margin</div>
+                    <div class="value" id="margin">0%</div>
+                </div>
+            </div>
+
+            <div class="recommendations" id="recommendations"></div>
+        </div>
+
+        <!-- Comparison Results -->
+        <div class="card results" id="comparison" style="display: none;">
+            <h2>📊 Crop Comparison Analysis</h2>
+            <table class="comparison-table" id="comparisonTable"></table>
+        </div>
+    </div>
+
+    <script>
+        // Simulated ML Model (In production, this would call the Python backend)
+        class YieldPredictor {
+            constructor() {
+                this.cropPrices = {
+                    'rice': 2500,
+                    'wheat': 2200,
+                    'cotton': 6000,
+                    'sugarcane': 3200,
+                    'groundnut': 5500,
+                    'maize': 2000,
+                    'pulses': 6500,
+                    'vegetables': 1500,
+                    'flowers': 3000
+                };
+            }
+
+            predict(soil, weather, crop, area) {
+                // Simplified ML prediction formula
+                const nFactor = soil.N / 140;
+                const pFactor = soil.P / 145;
+                const kFactor = soil.K / 205;
+                const phFactor = 1 - Math.abs(soil.pH - 6.5) / 2.5;
+                const tempFactor = Math.max(0, 1 - Math.abs(weather.temp - 28) / 15);
+                const rainFactor = Math.min(weather.rainfall / 200, 1);
+                const humidityFactor = weather.humidity / 100;
+
+                const baseYield = (
+                    nFactor * 0.25 +
+                    pFactor * 0.15 +
+                    kFactor * 0.15 +
+                    phFactor * 0.15 +
+                    tempFactor * 0.1 +
+                    rainFactor * 0.1 +
+                    humidityFactor * 0.1
+                );
+
+                // Crop-specific multipliers
+                const cropMultipliers = {
+                    'rice': 5000,
+                    'wheat': 4500,
+                    'cotton': 2500,
+                    'sugarcane': 70000,
+                    'groundnut': 3500,
+                    'maize': 6000,
+                    'pulses': 2000,
+                    'vegetables': 25000,
+                    'flowers': 15000
+                };
+
+                const yieldPerHectare = baseYield * cropMultipliers[crop];
+                const totalYield = yieldPerHectare * area;
+
+                return {
+                    yieldPerHectare: Math.round(yieldPerHectare),
+                    totalYield: Math.round(totalYield),
+                    confidenceLower: Math.round(yieldPerHectare * 0.9),
+                    confidenceUpper: Math.round(yieldPerHectare * 1.1)
+                };
+            }
+
+            calculateEconomics(prediction, crop, area) {
+                const totalQuintals = prediction.totalYield / 100;
+                const pricePerQuintal = this.cropPrices[crop];
+                const revenue = totalQuintals * pricePerQuintal;
+                const cost = area * 25000;
+                const profit = revenue - cost;
+                const margin = (profit / revenue) * 100;
+
+                return {
+                    revenue: Math.round(revenue),
+                    cost: Math.round(cost),
+                    profit: Math.round(profit),
+                    margin: Math.round(margin * 10) / 10
+                };
+            }
+
+            getRecommendations(soil, weather) {
+                const recs = [];
+
+                if (soil.N < 50) recs.push("⚠️ Nitrogen levels low - Apply urea or organic manure");
+                else if (soil.N > 120) recs.push("✅ Nitrogen levels optimal");
+
+                if (soil.P < 20) recs.push("⚠️ Phosphorus deficient - Apply DAP");
+                else if (soil.P > 100) recs.push("✅ Phosphorus levels good");
+
+                if (soil.K < 50) recs.push("⚠️ Potassium low - Apply muriate of potash");
+                else if (soil.K > 150) recs.push("✅ Potassium levels adequate");
+
+                if (soil.pH < 5.5) recs.push("⚠️ Soil too acidic - Apply lime");
+                else if (soil.pH > 8.0) recs.push("⚠️ Soil too alkaline - Apply sulfur");
+                else recs.push("✅ Soil pH in optimal range");
+
+                if (weather.rainfall < 40) recs.push("⚠️ Low rainfall expected - Arrange irrigation");
+                else if (weather.rainfall > 200) recs.push("⚠️ Heavy rainfall expected - Ensure drainage");
+
+                if (weather.temp > 35) recs.push("⚠️ High temperature - Consider mulching");
+                if (weather.humidity > 85) recs.push("⚠️ High humidity - Monitor for diseases");
+
+                return recs;
+            }
+        }
+
+        const predictor = new YieldPredictor();
+
+        async function fetchWeatherData(location) {
+            const coordinates = {
+                // Major Cities
+                'chennai': [13.0827, 80.2707],
+                'coimbatore': [11.0168, 76.9558],
+                'madurai': [9.9252, 78.1198],
+                'tiruchirappalli': [10.7905, 78.7047],
+                'trichy': [10.7905, 78.7047],
+                'salem': [11.6643, 78.1460],
+                'tirunelveli': [8.7139, 77.7567],
+                'tiruppur': [11.1075, 77.3398],
+                'erode': [11.3410, 77.7172],
+                'vellore': [12.9165, 79.1325],
+                'thoothukudi': [8.7642, 78.1348],
+                'tuticorin': [8.7642, 78.1348],
+                
+                // All 38 District Headquarters
+                'ariyalur': [11.1401, 79.0782],
+                'chengalpattu': [12.6918, 79.9763],
+                'cuddalore': [11.7447, 79.7689],
+                'dharmapuri': [12.1211, 78.1582],
+                'dindigul': [10.3673, 77.9803],
+                'kallakurichi': [11.7401, 78.9597],
+                'kanchipuram': [12.8342, 79.7036],
+                'kanyakumari': [8.0883, 77.5385],
+                'karur': [10.9601, 78.0766],
+                'krishnagiri': [12.5186, 78.2137],
+                'mayiladuthurai': [11.1024, 79.6546],
+                'nagapattinam': [10.7672, 79.8449],
+                'namakkal': [11.2189, 78.1677],
+                'nilgiris': [11.4102, 76.6950],
+                'ooty': [11.4102, 76.6950],
+                'perambalur': [11.2324, 78.8801],
+                'pudukkottai': [10.3833, 78.8000],
+                'ramanathapuram': [9.3639, 78.8370],
+                'ranipet': [12.9249, 79.3335],
+                'sivaganga': [9.8433, 78.4809],
+                'tenkasi': [8.9596, 77.3152],
+                'thanjavur': [10.7870, 79.1378],
+                'theni': [10.0104, 77.4769],
+                'thiruvallur': [13.1275, 79.9119],
+                'thiruvarur': [10.7727, 79.6345],
+                'tiruvannamalai': [12.2253, 79.0747],
+                'tirupattur': [12.4961, 78.5722],
+                'virudhunagar': [9.5810, 77.9624],
+                'villupuram': [11.9401, 79.4861],
+                
+                // Major Agricultural Towns
+                'gobichettipalayam': [11.4532, 77.4411],
+                'hosur': [12.7409, 77.8253],
+                'kumbakonam': [10.9617, 79.3881],
+                'nagercoil': [8.1790, 77.4343],
+                'karaikudi': [10.0663, 78.7691],
+                'pollachi': [10.6581, 77.0089],
+                'mettupalayam': [11.1972, 76.9383],
+                'udumalaipettai': [10.5869, 77.2481],
+                'palani': [10.4500, 77.5183],
+                'kodaikanal': [10.2381, 77.4892],
+                'yercaud': [11.7806, 78.2044],
+                'kotagiri': [11.4209, 76.8605],
+                'coonoor': [11.3556, 76.7959],
+                
+                // Agricultural Market Towns
+                'tiruchengode': [11.3786, 77.8945],
+                'avinashi': [11.1934, 77.2688],
+                'paramakudi': [9.5475, 78.5872],
+                'srivilliputhur': [9.5109, 77.6328],
+                'sankarankovil': [9.1726, 77.5481],
+                'sivakasi': [9.4559, 77.7881],
+                'rajapalayam': [9.4516, 77.5536],
+                'aruppukkottai': [9.5095, 78.0969],
+                
+                // Delta & Coastal
+                'papanasam': [10.9267, 79.2689],
+                'pattukkottai': [10.4240, 79.3186],
+                'mannargudi': [10.6667, 79.4500],
+                'vedaranyam': [10.3711, 79.8511],
+                'rameswaram': [9.2876, 79.3129],
+                'chidambaram': [11.3994, 79.6914],
+                'neyveli': [11.6227, 79.4892],
+                
+                // Western Region (Kongu)
+                'kangeyam': [11.0074, 77.5610],
+                'dharapuram': [10.7381, 77.5318],
+                'palladam': [10.9935, 77.2825],
+                'sulur': [11.0246, 77.1247],
+                'annur': [11.2333, 77.1000],
+                'perundurai': [11.2756, 77.5877],
+                'bhavani': [11.4449, 77.6794],
+                'sathyamangalam': [11.5050, 77.2355],
+                
+                // Salem District
+                'gopalapuram': [11.7500, 78.1000],
+                'attur': [11.5942, 78.6009],
+                'mettur': [11.7870, 77.8010],
+                'omalur': [11.7425, 78.0414],
+                'sankagiri': [11.4953, 77.8750],
+                'edappadi': [11.5534, 77.8088],
+                
+                // Hill Stations
+                'valparai': [10.3267, 76.9550],
+                'yelagiri': [12.5819, 78.6542],
+                
+                // Industrial Areas
+                'sriperumbudur': [12.9634, 79.9448],
+                'gummidipoondi': [13.4057, 80.1111],
+                'tambaram': [12.9249, 80.1000],
+                'ambattur': [13.1143, 80.1548],
+                'avadi': [13.1156, 80.1028]
+            };
+
+            const [lat, lon] = coordinates[location] || coordinates['salem'];
+
+            try {
+                const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,relative_humidity_2m_mean&timezone=Asia/Kolkata&forecast_days=7`;
+                
+                const response = await fetch(url);
+                const data = await response.json();
+
+                const daily = data.daily;
+                const avgTemp = (
+                    daily.temperature_2m_max.reduce((a, b) => a + b, 0) +
+                    daily.temperature_2m_min.reduce((a, b) => a + b, 0)
+                ) / (2 * daily.temperature_2m_max.length);
+
+                const totalRain = daily.precipitation_sum.reduce((a, b) => a + b, 0);
+                const avgHumidity = daily.relative_humidity_2m_mean.reduce((a, b) => a + b, 0) / daily.relative_humidity_2m_mean.length;
+
+                return {
+                    temp: Math.round(avgTemp * 10) / 10,
+                    rainfall: Math.round(totalRain * 10) / 10,
+                    humidity: Math.round(avgHumidity * 10) / 10,
+                    source: 'Open-Meteo API'
+                };
+            } catch (error) {
+                console.error('Weather fetch error:', error);
+                return {
+                    temp: 28.5,
+                    rainfall: 75.0,
+                    humidity: 70.0,
+                    source: 'Default values (API unavailable)'
+                };
+            }
+        }
+
+        async function fetchWeatherAndPredict() {
+            const soil = {
+                N: parseFloat(document.getElementById('nitrogen').value),
+                P: parseFloat(document.getElementById('phosphorus').value),
+                K: parseFloat(document.getElementById('potassium').value),
+                pH: parseFloat(document.getElementById('ph').value)
+            };
+
+            const crop = document.getElementById('crop').value;
+            const area = parseFloat(document.getElementById('area').value);
+            const location = document.getElementById('location').value;
+
+            // Show loading
+            document.getElementById('loading').classList.add('active');
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('comparison').style.display = 'none';
+
+            // Fetch weather
+            const weather = await fetchWeatherData(location);
+
+            // Predict
+            const prediction = predictor.predict(soil, weather, crop, area);
+            const economics = predictor.calculateEconomics(prediction, crop, area);
+            const recommendations = predictor.getRecommendations(soil, weather);
+
+            // Hide loading
+            setTimeout(() => {
+                document.getElementById('loading').classList.remove('active');
+                displayResults(crop, prediction, economics, recommendations, weather);
+            }, 1500);
+        }
+
+        function displayResults(crop, prediction, economics, recommendations, weather) {
+            // Weather info
+            document.getElementById('weatherInfo').innerHTML = `
+                <h3>🌤️ Current Weather Forecast (7-day average)</h3>
+                <p><strong>Temperature:</strong> ${weather.temp}°C</p>
+                <p><strong>Expected Rainfall:</strong> ${weather.rainfall} mm</p>
+                <p><strong>Humidity:</strong> ${weather.humidity}%</p>
+                <p style="font-size: 0.9em; color: #718096; margin-top: 10px;">
+                    Data source: ${weather.source}
+                </p>
+            `;
+
+            // Prediction
+            document.getElementById('cropName').textContent = crop.toUpperCase();
+            document.getElementById('predictedYield').textContent = 
+                prediction.yieldPerHectare.toLocaleString('en-IN') + ' kg/ha';
+            document.getElementById('totalYield').textContent = 
+                `Total: ${(prediction.totalYield / 1000).toFixed(2)} tonnes`;
+            document.getElementById('confidenceRange').textContent = 
+                `Confidence Range: ${prediction.confidenceLower.toLocaleString('en-IN')} - ${prediction.confidenceUpper.toLocaleString('en-IN')} kg/ha`;
+
+            // Economics
+            document.getElementById('revenue').textContent = 
+                '₹' + economics.revenue.toLocaleString('en-IN');
+            document.getElementById('cost').textContent = 
+                '₹' + economics.cost.toLocaleString('en-IN');
+            document.getElementById('profit').textContent = 
+                '₹' + economics.profit.toLocaleString('en-IN');
+            document.getElementById('margin').textContent = 
+                economics.margin + '%';
+
+            // Recommendations
+            const recHtml = `
+                <h3>💡 Agronomic Recommendations</h3>
+                <ul>
+                    ${recommendations.map(r => `<li>${r}</li>`).join('')}
+                </ul>
+            `;
+            document.getElementById('recommendations').innerHTML = recHtml;
+
+            // Show results
+            document.getElementById('results').style.display = 'block';
+        }
+
+        async function compareAllCrops() {
+            const soil = {
+                N: parseFloat(document.getElementById('nitrogen').value),
+                P: parseFloat(document.getElementById('phosphorus').value),
+                K: parseFloat(document.getElementById('potassium').value),
+                pH: parseFloat(document.getElementById('ph').value)
+            };
+
+            const area = parseFloat(document.getElementById('area').value);
+            const location = document.getElementById('location').value;
+
+            document.getElementById('loading').classList.add('active');
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('comparison').style.display = 'none';
+
+            const weather = await fetchWeatherData(location);
+            const crops = ['rice', 'wheat', 'cotton', 'sugarcane', 'groundnut', 'maize', 'pulses'];
+            const results = [];
+
+            crops.forEach(crop => {
+                const prediction = predictor.predict(soil, weather, crop, area);
+                const economics = predictor.calculateEconomics(prediction, crop, area);
+                results.push({
+                    crop: crop.charAt(0).toUpperCase() + crop.slice(1),
+                    yield: prediction.yieldPerHectare,
+                    total: (prediction.totalYield / 1000).toFixed(2),
+                    revenue: economics.revenue,
+                    profit: economics.profit,
+                    margin: economics.margin
+                });
+            });
+
+            results.sort((a, b) => b.profit - a.profit);
+
+            setTimeout(() => {
+                document.getElementById('loading').classList.remove('active');
+                displayComparison(results);
+            }, 1500);
+        }
+
+        function displayComparison(results) {
+            let html = `
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>Crop</th>
+                        <th>Yield (kg/ha)</th>
+                        <th>Total (tonnes)</th>
+                        <th>Revenue (₹)</th>
+                        <th>Profit (₹)</th>
+                        <th>Margin (%)</th>
+                    </tr>
+                </thead>
+                <tbody>
+            `;
+
+            results.forEach((r, i) => {
+                html += `
+                    <tr>
+                        <td>${i + 1}</td>
+                        <td><strong>${r.crop}</strong></td>
+                        <td>${r.yield.toLocaleString('en-IN')}</td>
+                        <td>${r.total}</td>
+                        <td>₹${r.revenue.toLocaleString('en-IN')}</td>
+                        <td style="color: ${r.profit > 0 ? '#38a169' : '#e53e3e'}">
+                            ₹${r.profit.toLocaleString('en-IN')}
+                        </td>
+                        <td>${r.margin}%</td>
+                    </tr>
+                `;
+            });
+
+            html += '</tbody>';
+            document.getElementById('comparisonTable').innerHTML = html;
+            document.getElementById('comparison').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
